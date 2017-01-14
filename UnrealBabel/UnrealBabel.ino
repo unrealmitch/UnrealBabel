@@ -68,6 +68,11 @@
 #define num_leds_rgb_bot 3				//Num Leds BEAT 2 [RGB Bot / side]
 #define num_leds_side 18 				//Num Leds VU Metter per side: ((NUM_LEDS - num_leds_rgb - num_leds_rgb_bot * 2) / 2)	
 
+//Fire
+#define NUM_LEDS_FIRE 24
+#define FRAMES_PER_SECOND 30
+#define COOLING  55
+#define SPARKING 120
 
 
 /********************************************************************************************************/
@@ -84,7 +89,7 @@
 module_colors colors_instance(125);
 
 //Led
-CRGB leds[NUM_LEDS];
+CRGBArray leds[NUM_LEDS];
 byte VU_colors[3] = {0,0,0};	//Temp array for set color of one led
 
 //Colors of RGB
@@ -575,7 +580,7 @@ void SetRgb_by_lvl(int lvl_audio){
 
 
 					/****************************************/
-					/*			EFFECTS - StreamWS2081		*/
+					/*			EFFECTS - StreamWS2811		*/
 					/****************************************/
 
 
@@ -684,6 +689,9 @@ void RGB_Move_Msg(int colour){
 	SendStream();
 }
 
+void Effect_fire(){
+
+}
 
 
 
@@ -758,7 +766,7 @@ void wifi_process(String order){
 
 	unsigned long now = millis();
 
-	if(wargs[0] >=0 && wargs[0] < 256){
+	if(wargs[0] >=0 && wargs[0] < 256){		//First Arg 0 -> Set Normal Color [R.G.B]
 		ResetStream();
 
 		incremento = 14;
@@ -771,7 +779,7 @@ void wifi_process(String order){
 
 		setColor5050();
 		SendStream();
-	}else if(wargs[0] == -1){
+	}else if(wargs[0] == -1){			//First Arg -1 -> Command -> Change Mode
 		if(wargs[1] == 0){
 			mode = 0;
 			smode_selected =  wargs[2];
