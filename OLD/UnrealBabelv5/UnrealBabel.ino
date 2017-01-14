@@ -89,12 +89,12 @@
 module_colors colors_instance(125);
 
 //Led
-CRGBArray<NUM_LEDS> strip;		//Colors of all leds of strip 5050 with WS2812
+CRGBArray leds[NUM_LEDS];
 byte VU_colors[3] = {0,0,0};	//Temp array for set color of one led
 
 //Colors of RGB
-byte led1_color[3] = {0,0,0};	//Color of Strip1 of LEDS 5050
-byte led2_color[3] = {0,0,0};	//Color of Strip2 of LEDS 5050
+byte color_beat[3] = {0,0,0};
+byte color_beat_2[3] = {0,0,0};
 strip_modes *smode;				//Object of strip color modes
 
 
@@ -268,43 +268,43 @@ int getLedMode(int startLed, int numLeds, int actual){
 
 
 					/****************************************/
-					/*		Strip5050 [LedX] & RGBColor		*/
+					/*			Stream5050 & RGBColor		*/
 					/****************************************/
 
 
-void Leds_set(){
-	analogWrite(PIN_LED_R, led1_color[0]);
-	analogWrite(PIN_LED_G, led1_color[1]);
-	analogWrite(PIN_LED_B, led1_color[2]);
+void setColor5050(){
+	analogWrite(PIN_LED_R, color_beat[0]);
+	analogWrite(PIN_LED_G, color_beat[1]);
+	analogWrite(PIN_LED_B, color_beat[2]);
 
-	analogWrite(PIN_LED2_R, led2_color[0]);
-	analogWrite(PIN_LED2_G, led2_color[1]);
-	analogWrite(PIN_LED2_B, led2_color[2]);
+	analogWrite(PIN_LED2_R, color_beat_2[0]);
+	analogWrite(PIN_LED2_G, color_beat_2[1]);
+	analogWrite(PIN_LED2_B, color_beat_2[2]);
 }
 
-void Led1_SetColor(byte red, byte green, byte blue){
-	led1_color[0] = red;
-	led1_color[1] = green;
-	led1_color[2] = blue;
+void writeColor5050(byte red, byte green, byte blue){
+	color_beat[0] = red;
+	color_beat[1] = green;
+	color_beat[2] = blue;
 }
 
-void Led2_SetColor(byte red, byte green, byte blue){
-	led2_color[0] = red;
-	led2_color[1] = green;
-	led2_color[2] = blue;
+void writeColor5050_2(byte red, byte green, byte blue){
+	color_beat_2[0] = red;
+	color_beat_2[1] = green;
+	color_beat_2[2] = blue;
 }
 
-void Leds_SetColor(byte red, byte green, byte blue){
-	led1_color[0] = red;
-	led1_color[1] = green;
-	led1_color[2] = blue;
+void writeColors5050(byte red, byte green, byte blue){
+	color_beat[0] = red;
+	color_beat[1] = green;
+	color_beat[2] = blue;
 	
-	led2_color[0] = red;
-	led2_color[1] = green;
-	led2_color[2] = blue;
+	color_beat_2[0] = red;
+	color_beat_2[1] = green;
+	color_beat_2[2] = blue;
 }
 
-void Leds_SetColorRnd(){
+void writeColor5050_rnd(){
 	//Set RGB leds with random color
 
 	int max_value = 255;
@@ -312,14 +312,14 @@ void Leds_SetColorRnd(){
 	last_rgb_color[1] = random(max_value);
 	last_rgb_color[2] = random(max_value);
 
-	led1_color[0] = last_rgb_color[0];
-	led1_color[1] = last_rgb_color[1];
-	led1_color[2] = last_rgb_color[2];
+	color_beat[0] = last_rgb_color[0];
+	color_beat[1] = last_rgb_color[1];
+	color_beat[2] = last_rgb_color[2];
 
-	Led1_SetColor(led1_color[0],led1_color[1],led1_color[2]);
+	writeColor5050(color_beat[0],color_beat[1],color_beat[2]);
 }
 
-void Leds_set_byColor(Color color){
+void setColor5050_byColor(Color color){
 	analogWrite(PIN_LED_R, color.r);
 	analogWrite(PIN_LED_G, color.g);
 	analogWrite(PIN_LED_B, color.b);
@@ -329,30 +329,30 @@ void Leds_set_byColor(Color color){
 	analogWrite(PIN_LED2_B, color.b);
 }
 
-void Led1_fade(unsigned long time){
-	byte max = led1_color[0];
-	if(led1_color[1]>max) max = led1_color[1]>max;
-	if(led1_color[2]>max) max = led1_color[2]>max;
+void attenuate_beat(unsigned long time){
+	byte max = color_beat[0];
+	if(color_beat[1]>max) max = color_beat[1]>max;
+	if(color_beat[2]>max) max = color_beat[2]>max;
 
 	byte subs = attenuate_subtract;
-	//byte subs = byte (((int) attenuate_subtract * (int) led1_color[i]) / (int) max); //map(attenuate_subtract,0,max,0,led1_color[i]);
+	//byte subs = byte (((int) attenuate_subtract * (int) color_beat[i]) / (int) max); //map(attenuate_subtract,0,max,0,color_beat[i]);
 	if(time_attenuate <= time){
 		for(int i = 0; i < 3;i++){
 			
-			if(led1_color[i] >= subs)
-				led1_color[i]-= subs;
+			if(color_beat[i] >= subs)
+				color_beat[i]-= subs;
 			else
-				led1_color[i] = 0;
+				color_beat[i] = 0;
 		}
-		Leds_set();
+		setColor5050();
 		time_attenuate = time + timer_attenuate;
 	}
 }
 
-void Leds_clear(){
-	Led1_SetColor(0,0,0);
-	Led2_SetColor(0,0,0);
-	Leds_set();
+void cleanColors5050(){
+	writeColor5050(0,0,0);
+	writeColor5050_2(0,0,0);
+	setColor5050();
 	ResetStream();
 	SendStream();
 }
@@ -370,7 +370,7 @@ void Duplicate(){ //Mirror the left side of the LED strip on the right
 	int i; int j;
 	for (i=NUM_LEDS-1; i > (NUM_LEDS-1-num_leds_side-num_leds_rgb_bot); i--){
 		j=NUM_LEDS-1-i;
-		SetStream(strip[j].g,strip[j].r,strip[j].b,i);
+		SetStream(leds[j].g,leds[j].r,leds[j].b,i);
 	}
 }
 
@@ -391,9 +391,9 @@ void SetStream(int r, int g, int b, int pos){
 	if (g < 0) g = 0;
 	if (b < 0) b = 0;
 
-	strip[pos].r = g;
-	strip[pos].g = r;
-	strip[pos].b = b;
+	leds[pos].r = g;
+	leds[pos].g = r;
+	leds[pos].b = b;
 }
 
 void SendStream(){
@@ -525,9 +525,9 @@ void RGB_MSG(int* led, int num_leds, int red, int green,int blue, int num_flash,
 boolean Rgb_Low_Values(int min){	
 	//If is a necesary min to change color of leds (MinToChange_On need set 1)
 	if(MinToChange_On == 0) return true;
-	if(led1_color[0] > min) return false;
-	if(led1_color[1] > min) return false;
-	if(led1_color[2] > min) return false;
+	if(color_beat[0] > min) return false;
+	if(color_beat[1] > min) return false;
+	if(color_beat[2] > min) return false;
 
 	return true;
 }
@@ -570,11 +570,11 @@ void SetLeds_by_max(byte max){
 void SetRgb_Max(int max_value){		
 	//Set A Rgb color by random number (0 to max_value)
 
-	led1_color[0] = random(max_value);
-	led1_color[1] = random(max_value);
-	led1_color[2] = random(max_value);
+	color_beat[0] = random(max_value);
+	color_beat[1] = random(max_value);
+	color_beat[2] = random(max_value);
 
-	SetRgb(led1_color[0],led1_color[1],led1_color[2]);
+	SetRgb(color_beat[0],color_beat[1],color_beat[2]);
 }
 
 void SetRgb_by_lvl(int lvl_audio){	
@@ -722,19 +722,19 @@ void serial_server(unsigned long now){
 			ResetStream();
 			lvl = arg;
 			leds_on = SetLeds(lvl,0) - 1;
-			SetRgb_Top(led1_color[0],led1_color[1],led1_color[2]);
+			SetRgb_Top(color_beat[0],color_beat[1],color_beat[2]);
 			Effect_Led_MaxToLvl(leds_on,now);
-			Led1_fade(now);
+			attenuate_beat(now);
 			SendStream();			
 		} else if (arg_i> 0 && arg_i < 4) {
-			led1_color[arg_i-1] = arg*2;
-			led2_color[arg_i-1] = arg*2;
+			color_beat[arg_i-1] = arg*2;
+			color_beat_2[arg_i-1] = arg*2;
 		} else {
-			led2_color[arg_i-4] = arg*2;
+			color_beat_2[arg_i-4] = arg*2;
 		}
 
 		if(arg_i == SERIAL_ARGS - 1){
-			Leds_set();
+			setColor5050();
 			time_attenuate = now + timer_attenuate_first;
 			arg_i = -1;
 		}
@@ -827,27 +827,27 @@ void wifi_process(String order){
 		int leds = SetLeds(wargs[0],5) - 1;
 		//Effect_Led_MaxToLvl(leds,now);
 
-		Leds_SetColor(wargs[1], wargs[2], wargs[3]);
-		SetRgb_Top(led1_color[0],led1_color[1],led1_color[2]);
-		SetRgb_Bot(led1_color[0],led1_color[1],led1_color[2]);
+		writeColors5050(wargs[1], wargs[2], wargs[3]);
+		SetRgb_Top(color_beat[0],color_beat[1],color_beat[2]);
+		SetRgb_Bot(color_beat[0],color_beat[1],color_beat[2]);
 
-		Leds_set();
+		setColor5050();
 		SendStream();
 	}else if(wargs[0] == -1){			//First Arg -1 -> Command -> Change Mode
 		if(wargs[1] == 0){
 			mode = 0;
 			smode_selected =  wargs[2];
-			if(led1_color[0] == 0 && led1_color[1] == 0 && led1_color[2] == 0){
+			if(color_beat[0] == 0 && color_beat[1] == 0 && color_beat[2] == 0){
 				smode->setColor(random(0,255),random(0,255),random(0,255));
 			}else{
-				smode->setColor(led1_color[0],led1_color[1],led1_color[2]);
+				smode->setColor(color_beat[0],color_beat[1],color_beat[2]);
 			}
 			smode->setTimer(50);
 			if (wargs[3] > 0) smode->setTimer(wargs[3]);
 			//ssmode->setTimer(1);
 		}
 
-		Leds_set_byColor(smode->setStrip(smode_selected, now));
+		setColor5050_byColor(smode->setStrip(smode_selected, now));
 	}
 }
 
@@ -883,12 +883,11 @@ void setup () {
 	pinMode(13, OUTPUT);
 
 
-	//Pin of Strip WS2811
+	//Pins of Strep WS8011
 	pinMode(PIN_LED,OUTPUT);
 
 	//LedStream
-	FastLED.addLeds<WS2811, PIN_LED, RGB>(strip, NUM_LEDS);
-	//FastLED.addLeds<NEOPIXEL, PIN_LED>(leds, NUM_LEDS);
+	FastLED.addLeds<NEOPIXEL, PIN_LED>(leds, NUM_LEDS);
 
 	//Init stipmodes
 	smode = new strip_modes(10);
@@ -897,21 +896,21 @@ void setup () {
 	int time_c = 100;
 
 	/*
-	Leds_SetColor(100,0,0);Leds_set();delay(time_c);
-	Leds_SetColor(0,100,0);Leds_set();delay(time_c);
-	Leds_SetColor(0,0,100);Leds_set();delay(time_c);
+	writeColors5050(100,0,0);setColor5050();delay(time_c);
+	writeColors5050(0,100,0);setColor5050();delay(time_c);
+	writeColors5050(0,0,100);setColor5050();delay(time_c);
 	*/
 
 	if(wifi_check()){
-		Leds_SetColor(0,50,0);Leds_set();
+		writeColors5050(0,50,0);setColor5050();
 		if(DEBUG_WIFI) Serial.println("#W: Server Up!");
 	}else{
-		Leds_SetColor(50,0,0);Leds_set();
+		writeColors5050(50,0,0);setColor5050();
 	}
 
 	//Start indicator
 	RGB_Move_Msg(1);
-	Led1_SetColor(0,0,0);Led2_SetColor(0,0,0);Leds_set();
+	writeColor5050(0,0,0);writeColor5050_2(0,0,0);setColor5050();
 
 	beat_info.state_now = 0;
 
@@ -938,7 +937,7 @@ void loop() {
 
 
 	}else if(mode == 0){			//Automate mode -> Different Effects
-		Leds_set_byColor(smode->setStrip(smode_selected, now));
+		setColor5050_byColor(smode->setStrip(smode_selected, now));
 	}else if(mode == 1){			//Info from PC -> Serie
 		serial_server(now);
 	}else if(mode==2){				//Info from Wifi
